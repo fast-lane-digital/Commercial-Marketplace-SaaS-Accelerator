@@ -536,7 +536,7 @@ if ($env:ACC_CLOUD -eq $null){
 }
 
 Write-host "      ➡️ Create SQL DB"
-az sql db create --resource-group $ResourceGroupForDeployment --server $SQLServerName --name $SQLDatabaseName  --edition Standard  --capacity 10 --zone-redundant false --output $azCliOutput
+az sql db create --resource-group $ResourceGroupForDeployment --server $SQLServerName --name $SQLDatabaseName  --edition Basic  --capacity 5 --zone-redundant false --backup-storage-redundancy Local --output $azCliOutput
 
 Write-host "   🔵 KeyVault"
 Write-host "      ➡️ Create KeyVault"
