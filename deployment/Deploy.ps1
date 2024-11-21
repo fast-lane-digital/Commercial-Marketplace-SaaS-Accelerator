@@ -27,7 +27,7 @@ Param(
    [string][Parameter()]$LogoURLpng,  # URL for Publisher .png logo
    [string][Parameter()]$LogoURLico,  # URL for Publisher .ico logo
    [string][Parameter()]$KeyVault, # Name of KeyVault
-   [switch][Parameter()]$Quiet #if set, only show error / warning output from script commands
+   [switch][Parameter()]$Quiet, #if set, only show error / warning output from script commands
    [switch][Parameter()]$Production # if true use production subnet (10.20.16.0), else use staging subnet (10.20.26.0)
 )
 
