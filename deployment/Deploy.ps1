@@ -478,7 +478,8 @@ if (!(Test-Path '../Publish')) {
 Write-host "☁ Deploy Azure Resources"
 
 #Set-up resource name variables
-$WebAppNameService=$WebAppNamePrefix+"-asp"
+$WebAppNameService=$WebAppNamePrefix+"-asp-win"
+$WebAppNameServiceLinux=$WebAppNamePrefix+"-asp-linux"
 $WebAppNameAdmin=$WebAppNamePrefix+"-admin"
 $WebAppNamePortal=$WebAppNamePrefix+"-portal"
 $VnetName=$WebAppNamePrefix+"-vnet"
@@ -551,6 +552,11 @@ az keyvault network-rule add --name $KeyVault --resource-group $ResourceGroupFor
 Write-host "   🔵 App Service Plan"
 Write-host "      ➡️ Create App Service Plan"
 az appservice plan create -g $ResourceGroupForDeployment -n $WebAppNameService --sku B1 --output $azCliOutput
+# Create Linux App Service Plan for Marketplace API Emulator
+# TODO deployment of marketplace API emulator
+if (!($Production)) {
+	az appservice plan create -g $ResourceGroupForDeployment -n $WebAppNameServiceLinux --is-linux --sku B1 --output $azCliOutput
+}
 
 Write-host "   🔵 Admin Portal WebApp"
 Write-host "      ➡️ Create Web App"
