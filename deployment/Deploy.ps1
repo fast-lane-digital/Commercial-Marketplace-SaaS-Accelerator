@@ -509,16 +509,16 @@ if ($Production) {
 	Write-host "      ➡️ Create VNET and Subnet"
 	az network vnet create --resource-group $ResourceGroupForDeployment --name $VnetName --address-prefixes "10.20.16.0/24" --output $azCliOutput
 	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $DefaultSubnetName --address-prefixes "10.20.16.0/27" --output $azCliOutput
-	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.20.16.32/27" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
-	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.20.16.64/27"  --output $azCliOutput 
-	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.20.16.96/27"   --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.20.16.32/27"  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.20.16.64/26" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.20.16.128/27"   --output $azCliOutput 
 } else {
 	Write-host "      ➡️ Create VNET and Subnet"
 	az network vnet create --resource-group $ResourceGroupForDeployment --name $VnetName --address-prefixes "10.20.26.0/24" --output $azCliOutput
 	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $DefaultSubnetName --address-prefixes "10.20.26.0/27" --output $azCliOutput
-	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.20.26.32/27" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
-	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.20.26.64/27"  --output $azCliOutput 
-	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.20.26.96/27"   --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.20.26.32/27"  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.20.26.64/26" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.20.26.128/27"   --output $azCliOutput 
 }
 
 
