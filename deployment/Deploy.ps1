@@ -27,7 +27,8 @@ Param(
    [string][Parameter()]$LogoURLpng,  # URL for Publisher .png logo
    [string][Parameter()]$LogoURLico,  # URL for Publisher .ico logo
    [string][Parameter()]$KeyVault, # Name of KeyVault
-   [switch][Parameter()]$Quiet #if set, only show error / warning output from script commands
+   [switch][Parameter()]$Quiet, #if set, only show error / warning output from script commands
+   [switch][Parameter()]$Production # if true use production subnet (10.20.16.0), else use staging subnet (10.20.26.0)
 )
 
 # Define the warning message
@@ -477,7 +478,8 @@ if (!(Test-Path '../Publish')) {
 Write-host "☁ Deploy Azure Resources"
 
 #Set-up resource name variables
-$WebAppNameService=$WebAppNamePrefix+"-asp"
+$WebAppNameService=$WebAppNamePrefix+"-asp-win"
+$WebAppNameServiceLinux=$WebAppNamePrefix+"-asp-linux"
 $WebAppNameAdmin=$WebAppNamePrefix+"-admin"
 $WebAppNamePortal=$WebAppNamePrefix+"-portal"
 $VnetName=$WebAppNamePrefix+"-vnet"
@@ -503,12 +505,22 @@ Write-host "   🔵 Resource Group"
 Write-host "      ➡️ Create Resource Group"
 az group create --location $Location --name $ResourceGroupForDeployment --output $azCliOutput
 
-Write-host "      ➡️ Create VNET and Subnet"
-az network vnet create --resource-group $ResourceGroupForDeployment --name $VnetName --address-prefixes "10.0.0.0/20" --output $azCliOutput
-az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $DefaultSubnetName --address-prefixes "10.0.0.0/24" --output $azCliOutput
-az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.0.1.0/24" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
-az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.0.2.0/24"  --output $azCliOutput 
-az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.0.3.0/24"   --output $azCliOutput 
+if ($Production) {
+	Write-host "      ➡️ Create VNET and Subnet"
+	az network vnet create --resource-group $ResourceGroupForDeployment --name $VnetName --address-prefixes "10.20.16.0/24" --output $azCliOutput
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $DefaultSubnetName --address-prefixes "10.20.16.0/27" --output $azCliOutput
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.20.16.32/27"  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.20.16.64/26" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.20.16.128/27"   --output $azCliOutput 
+} else {
+	Write-host "      ➡️ Create VNET and Subnet"
+	az network vnet create --resource-group $ResourceGroupForDeployment --name $VnetName --address-prefixes "10.20.26.0/24" --output $azCliOutput
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $DefaultSubnetName --address-prefixes "10.20.26.0/27" --output $azCliOutput
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $SqlSubnetName --address-prefixes "10.20.26.32/27"  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $WebSubnetName --address-prefixes "10.20.26.64/26" --service-endpoints Microsoft.Sql Microsoft.KeyVault --delegations Microsoft.Web/serverfarms  --output $azCliOutput 
+	az network vnet subnet create --resource-group $ResourceGroupForDeployment --vnet-name $VnetName -n $KvSubnetName --address-prefixes "10.20.26.128/27"   --output $azCliOutput 
+}
+
 
 Write-host "      ➡️ Create Sql Server"
 $userId = az ad signed-in-user show --query id -o tsv 
@@ -525,7 +537,7 @@ if ($env:ACC_CLOUD -eq $null){
 }
 
 Write-host "      ➡️ Create SQL DB"
-az sql db create --resource-group $ResourceGroupForDeployment --server $SQLServerName --name $SQLDatabaseName  --edition Standard  --capacity 10 --zone-redundant false --output $azCliOutput
+az sql db create --resource-group $ResourceGroupForDeployment --server $SQLServerName --name $SQLDatabaseName  --edition Basic  --capacity 5 --zone-redundant false --backup-storage-redundancy Local --output $azCliOutput
 
 Write-host "   🔵 KeyVault"
 Write-host "      ➡️ Create KeyVault"
@@ -540,6 +552,11 @@ az keyvault network-rule add --name $KeyVault --resource-group $ResourceGroupFor
 Write-host "   🔵 App Service Plan"
 Write-host "      ➡️ Create App Service Plan"
 az appservice plan create -g $ResourceGroupForDeployment -n $WebAppNameService --sku B1 --output $azCliOutput
+# Create Linux App Service Plan for Marketplace API Emulator
+# TODO deployment of marketplace API emulator
+if (!($Production)) {
+	az appservice plan create -g $ResourceGroupForDeployment -n $WebAppNameServiceLinux --is-linux --sku B1 --output $azCliOutput
+}
 
 Write-host "   🔵 Admin Portal WebApp"
 Write-host "      ➡️ Create Web App"
